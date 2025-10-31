@@ -24,6 +24,17 @@
 #include "IdEcoInterfaceBus1.h"
 #include "IdEcoFileSystemManagement1.h"
 #include "IdEcoLab1.h"
+#include <time.h>
+#include <stdio.h>
+
+#include "C:\Users\01kri\Downloads\Eco.CalculatorC\SharedFiles\IEcoCalculatorX.h"
+#include "C:\Users\01kri\Downloads\Eco.CalculatorD\SharedFiles\IEcoCalculatorY.h"
+
+#include "C:\Users\01kri\Downloads\Eco.CalculatorA\SharedFiles\IdEcoCalculatorA.h"
+#include "C:\Users\01kri\Downloads\Eco.CalculatorD\SharedFiles\IdEcoCalculatorD.h"
+#include "C:\Users\01kri\Downloads\Eco.CalculatorB\SharedFiles\IdEcoCalculatorB.h"
+#include "C:\Users\01kri\Downloads\Eco.CalculatorE\SharedFiles\IdEcoCalculatorE.h"
+#include "C:\Users\01kri\Downloads\Eco.CalculatorC\SharedFiles\IdEcoCalculatorC.h"
 
 /*
  *
@@ -36,6 +47,23 @@
  * </описание>
  *
  */
+
+int __cdecl compare_int(const void* a, const void* b) {
+    return (*((int32_t*)a) - *((int32_t*)b));
+}
+
+void __cdecl print_array_basic(int32_t* arr, uint32_t length) {
+	uint32_t i = 0;
+    if (arr == NULL || length == 0) {
+        printf("Array is empty or NULL\n");
+        return;
+    }
+    for (i = 0; i < length; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
 int16_t EcoMain(IEcoUnknown* pIUnk) {
     int16_t result = -1;
     /* Указатель на системный интерфейс */
@@ -46,6 +74,8 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     IEcoMemoryAllocator1* pIMem = 0;
     /* Указатель на тестируемый интерфейс */
     IEcoLab1* pIEcoLab1 = 0;
+	IEcoCalculatorX *pIX = 0;
+    IEcoCalculatorY *pIY = 0;
 
 	int32_t *sorted_arr;
     int32_t *generated_arr;
@@ -93,10 +123,75 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
 
+	/* Получение IEcoCalculatorX и демонстрация его работы */
+	result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoCalculatorX, (void **)&pIX);
+	if (result != 0 || pIX == 0) {
+        /* Освобождение интерфейсов в случае ошибки */
+       goto Release;
+    }
+ 
+    printf("Addition: %d\n", pIX->pVTbl->Addition(pIX, 3, 5));
+    printf("Subtraction: %d\n", pIX->pVTbl->Subtraction(pIX, 10, 5));
 
+	/* Получение IEcoCalculatorY и демонстрация его работы */
+	result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoCalculatorY, (void **)&pIY);
+    printf("Division: %d\n", pIY->pVTbl->Division(pIY, 10, 2));
+    printf("Multiplication: %d\n", pIY->pVTbl->Multiplication(pIY, 10, 5));
+
+
+	/* Тестируем компонент EcoCalculatorE через интерфейсы */
+	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorE, 0, &IID_IEcoCalculatorY, (void **)&pIY);
+    if (result == 0 && pIY != 0)
+    {
+        printf("EcoCalculatorE from IEcoCalculatorY\n");
+        /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
+        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void **)&pIX);
+        printf("Addition: %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+        printf("Subtraction: %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
+    }
+    /* Тестируем компонент EcoCalculatorD */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void **)&pIY);
+    if (result == 0 && pIY != 0)
+    {
+        printf("EcoCalculatorD from IEcoCalculatorY\n");
+        /* Получение интерфейса по работе со сложением и вычитанием у компонента "A" */
+        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void **)&pIX);
+        printf("Addition: %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+        printf("Subtraction: %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
+    }
+
+    /* Тестируем компонент EcoCalculatorС */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorC, 0, &IID_IEcoCalculatorY, (void **)&pIY);
+    if (result == 0 && pIY != 0)
+    {
+        printf("EcoCalculatorC from IEcoCalculatorY\n");
+        /* Получение интерфейса по работе со сложением и вычитанием у компонента "C" */
+        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void **)&pIX);
+        printf("Addition: %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+        printf("Subtraction: %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
+    }
+    /* Тестируем компонент EcoCalculatorB c поддержкой агрегирования */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, 0, &IID_IEcoCalculatorX, (void **)&pIX);
+    if (result == 0 || pIX != 0)
+    {
+        printf("EcoCalculatorB from IEcoCalculatorX\n");
+        /* Тестируем компонент EcoCalculatorA*/
+        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorA, 0, &IID_IEcoCalculatorX, (void **)&pIX);
+        printf("Addition: %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+        printf("Subtraction: %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
+
+	}
+
+	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorA, 0, &IID_IEcoCalculatorX, (void **)&pIX);
+    if (result != 0 || pIX == 0)
+    {
+        printf("EcoCalculatorA from IEcoCalculatorX\n");
+        printf("Addition: %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+        printf("Subtraction: %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
+	}
     for (i = 1; i <= 10; i++)
     {
-        arrayLength = 10000 * i;
+        arrayLength = 10;
 		/* Генерация массива */
         result = pIEcoLab1->pVTbl->PseudoGenerator(pIEcoLab1, arrayLength, i, &generated_arr);
         if (result != ERR_ECO_SUCCESES)
@@ -107,7 +202,11 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
 
 		/* Старт алгоритма */
         start = clock();
-        result = pIEcoLab1->pVTbl->InsertionSort(pIEcoLab1, generated_arr, arrayLength, &sorted_arr);
+		printf("Before sort:");
+		print_array_basic(generated_arr, arrayLength);
+		result = pIEcoLab1->pVTbl->InsertionSort(pIEcoLab1, generated_arr, arrayLength, &sorted_arr);
+		printf("After sort:");
+		print_array_basic(sorted_arr, arrayLength);
 		/* Конец алгоритма */
         end = clock();
         if (result != ERR_ECO_SUCCESES)
@@ -116,7 +215,8 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
             goto Release;
         }
         cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-        printf("InsertionSort (length = %u) time: %f seconds\n", arrayLength, cpu_time_used);
+		printf("\n\n");
+        //printf("InsertionSort (length = %u) time: %f seconds\n", arrayLength, cpu_time_used);
 
 		/* Освобождение выделенной памяти массивов */
 		pIMem->pVTbl->Free(pIMem, generated_arr);
@@ -159,4 +259,3 @@ Release:
 
     return result;
 }
-

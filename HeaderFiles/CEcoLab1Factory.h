@@ -33,7 +33,6 @@ typedef struct CEcoLab1Factory {
     /* Данные компонентов для фабрики */
     CreateInstance m_pInstance;
     InitInstance m_pInitInstance;
-    char_t m_Name[64];
     char_t m_Version[16];
     char_t m_Manufacturer[64];
 

@@ -166,27 +166,6 @@ static int16_t ECOCALLMETHOD CEcoLab1Factory_Alloc(/* in */ struct IEcoComponent
 /*
  *
  * <сводка>
- *   Функция get_Name
- * </сводка>
- *
- * <описание>
- *   Функция возвращает наименование компонента
- * </описание>
- *
- */
-static char_t* ECOCALLMETHOD CEcoLab1Factory_get_Name(/* in */ struct IEcoComponentFactory* me) {
-    CEcoLab1Factory* pCMe = (CEcoLab1Factory*)me;
-
-    if (me == 0 ) {
-        return 0; /* ERR_ECO_POINTER */
-    }
-
-    return pCMe->m_Name;
-}
-
-/*
- *
- * <сводка>
  *   Функция get_Version
  * </сводка>
  *
@@ -233,7 +212,6 @@ IEcoComponentFactoryVTbl g_x1F5DF16EE1BF43B999A434ED38FE8F3AFactoryVTbl = {
     CEcoLab1Factory_Release,
     CEcoLab1Factory_Alloc,
     CEcoLab1Factory_Init,
-    CEcoLab1Factory_get_Name,
     CEcoLab1Factory_get_Version,
     CEcoLab1Factory_get_Manufacturer
 };
@@ -256,7 +234,6 @@ CEcoLab1Factory g_x1F5DF16EE1BF43B999A434ED38FE8F3AFactory = {
     (InitInstance)initCEcoLab1,
     "EcoLab1\0",
     "1.0.0.0\0",
-    "CompanyName\0"
 };
 
 #ifdef ECO_DLL
