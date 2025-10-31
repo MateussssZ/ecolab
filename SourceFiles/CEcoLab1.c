@@ -213,7 +213,7 @@ static int16_t ECOCALLMETHOD CEcoLab1_InsertionSort(
     return ERR_ECO_SUCCESES;
 }
 
-int32_t ECOCALLMETHOD CEcoLab1_Multiplication(/* in */ struct IEcoCalculatorY *me, /* in */ int16_t a, /* in */ int16_t b)
+int16_t ECOCALLMETHOD CEcoLab1_Multiplication(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b)
 {
     CEcoLab1 *pCMe = (CEcoLab1 *)me;
     int32_t result = 0;
@@ -232,7 +232,7 @@ int32_t ECOCALLMETHOD CEcoLab1_Multiplication(/* in */ struct IEcoCalculatorY *m
     return result;
 }
 
-int16_t ECOCALLMETHOD CEcoLab1_Division(/* in */ struct IEcoCalculatorY *me, /* in */ int16_t a, /* in */ int16_t b)
+int16_t ECOCALLMETHOD CEcoLab1_Division(/* in */IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b)
 {
     CEcoLab1 *pCMe = (CEcoLab1 *)me;
     int16_t result = 0;
@@ -246,6 +246,44 @@ int16_t ECOCALLMETHOD CEcoLab1_Division(/* in */ struct IEcoCalculatorY *me, /* 
     if (pCMe->m_pIY != 0)
     {
         result = pCMe->m_pIY->pVTbl->Division(pCMe->m_pIY, a, b);
+    }
+
+    return result;
+}
+
+int16_t ECOCALLMETHOD CEcoLab1_Subtraction(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b)
+{
+    CEcoLab1 *pCMe = (CEcoLab1 *)me;
+    int16_t result = 0;
+
+    /* Проверка указателей */
+    if (me == 0)
+    {
+        return -1;
+    }
+
+    if (pCMe->m_pIY != 0)
+    {
+        result = pCMe->m_pIX->pVTbl->Subtraction(pCMe->m_pIX, a, b);
+    }
+
+    return result;
+}
+
+int16_t ECOCALLMETHOD CEcoLab1_Addition(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b)
+{
+    CEcoLab1 *pCMe = (CEcoLab1 *)me;
+    int16_t result = 0;
+
+    /* Проверка указателей */
+    if (me == 0)
+    {
+        return -1;
+    }
+
+    if (pCMe->m_pIY != 0)
+    {
+        result = pCMe->m_pIX->pVTbl->Addition(pCMe->m_pIX, a, b);
     }
 
     return result;
@@ -284,26 +322,34 @@ int16_t ECOCALLMETHOD initCEcoLab1(/*in*/ IEcoLab1Ptr_t me, /* in */ struct IEco
         return result;
     }
 
+	// Включение компонента EcoCalculatorD для IEcoCalculatorY
 	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void **)&pCMe->m_pIY);
     if (result != 0 || pCMe->m_pIY == 0)
     {
-        // Если не получилось, то включаем IEcoCalculatorY из CEcoCalculatorE
+        // Если не получилось, то включаем CEcoCalculatorE
         result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorE, 0, &IID_IEcoCalculatorY, (void **)&pCMe->m_pIY);
     }
 
-    // Пытаемся агрегировать CEcoCalculatorB, чтобы иметь доступ к IEcoCalculatorX
+    // Включение компонента EcoCalculatorB для IEcoCalculatorX
      result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, pOuterUnknown, &IID_IEcoUnknown, (void **)&pCMe->m_pIX);
     if (result != 0)
     {
-        // Если не получилось, то включаем IEcoCalculatorX из CEcoCalculatorA
+        // Если не получилось, то включаем CEcoCalculatorA
         result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorA, pOuterUnknown, &IID_IEcoUnknown, (void **)&pCMe->m_pIX);
     }
-    // Пытаемся агрегировать CEcoCalculatorC, чтобы иметь доступ к IEcoCalculatorX
+    // Включение компонента EcoCalculatorC для IEcoCalculatorX
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorC, pOuterUnknown, &IID_IEcoUnknown, (void **)&pCMe->m_pIX);
     if (result != 0)
-    {		// Если не получилось, то включаем IEcoCalculatorY из CEcoCalculatorC
+    {		// Если не получилось, то включаем CEcoCalculatorC для IEcoCalculatorY
         result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorC, 0, &IID_IEcoCalculatorY, (void **)&pCMe->m_pIY);
     }
+
+	if (pCMe->m_pIY == 0){
+		printf("WARNING: No CalculatorY components available\n");
+	}
+	if (pCMe->m_pIX == 0){
+		printf("WARNING: No CalculatorX components available\n");
+	}
 
     /* Сохранение указателя на системный интерфейс */
     pCMe->m_pISys = (IEcoSystem1*)pIUnkSystem;
@@ -317,19 +363,17 @@ int16_t ECOCALLMETHOD initCEcoLab1(/*in*/ IEcoLab1Ptr_t me, /* in */ struct IEco
 }
 
 /* Create Virtual Table IEcoLab1 */
-IEcoCalculatorYVTbl g_xBD6414C29096423EA90C04D77AFD1CADVTblLab1 = {
-    CEcoLab1_QueryInterface,
-    CEcoLab1_AddRef,
-    CEcoLab1_Release,
-    CEcoLab1_Multiplication,
-    CEcoLab1_Division};
 
 IEcoLab1VTbl g_x277FC00C35624096AFCFC125B94EEC90VTbl = {
     CEcoLab1_QueryInterface,
     CEcoLab1_AddRef,
     CEcoLab1_Release,
 	CEcoLab1_InsertionSort,
-	CEcoLab1_PseudoGenerator
+	CEcoLab1_PseudoGenerator,
+		CEcoLab1_Addition,
+		CEcoLab1_Subtraction,
+		CEcoLab1_Multiplication,
+		CEcoLab1_Division
 };
 
 /*
@@ -400,8 +444,6 @@ int16_t ECOCALLMETHOD createCEcoLab1(/* in */ IEcoUnknown *pIUnkSystem, /* in */
     /* Создание таблицы функций интерфейса IEcoLab1 */
     pCMe->m_pVTblIEcoLab1 = &g_x277FC00C35624096AFCFC125B94EEC90VTbl;
 
-	pCMe->m_pVTblIY = &g_xBD6414C29096423EA90C04D77AFD1CADVTblLab1;
-
     /* Возврат указателя на интерфейс */
     *ppIEcoLab1 = (IEcoLab1*)pCMe;
 
@@ -428,6 +470,14 @@ int16_t ECOCALLMETHOD createCEcoLab1(/* in */ IEcoUnknown *pIUnkSystem, /* in */
 void ECOCALLMETHOD deleteCEcoLab1(/* in */ IEcoLab1* pIEcoLab1) {
     CEcoLab1* pCMe = (CEcoLab1*)pIEcoLab1;
     IEcoMemoryAllocator1* pIMem = 0;
+
+	if (pCMe->m_pIX != 0) {
+            pCMe->m_pIX->pVTbl->Release(pCMe->m_pIX);
+        }
+        if (pCMe->m_pIY != 0) {
+            pCMe->m_pIY->pVTbl->Release(pCMe->m_pIY);
+        }
+        
 
     if (pIEcoLab1 != 0 ) {
         pIMem = pCMe->m_pIMem;
