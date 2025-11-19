@@ -106,6 +106,32 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         /* Освобождение в случае ошибки */
         goto Release;
     }
+
+	result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoCalculatorB, (IEcoUnknown*)GetIEcoComponentFactoryPtr_AE202E543CE54550899603BD70C62565);
+    if (result != 0) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoCalculatorA, (IEcoUnknown*)GetIEcoComponentFactoryPtr_4828F6552E4540E78121EBD220DC360E);
+    if (result != 0) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+	result = g_pIBus->pVTbl->RegisterComponent(g_pIBus, &CID_EcoCalculatorC, (IEcoUnknown*)GetIEcoComponentFactoryPtr_4828F6552E4540E78121EBD220DC360E);
+    if (result != 0 ) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoCalculatorD, (IEcoUnknown*)GetIEcoComponentFactoryPtr_3A8E44677E82475CB4A3719ED8397E61);
+    if (result != 0) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoCalculatorE, (IEcoUnknown*)GetIEcoComponentFactoryPtr_872FEF1DE3314B87AD44D1E7C232C2F0);
+    if (result != 0) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
 #endif
     /* Получение интерфейса управления памятью */
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1, 0, &IID_IEcoMemoryAllocator1, (void**) &pIMem);
@@ -122,96 +148,103 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         /* Освобождение интерфейсов в случае ошибки */
         goto Release;
     }
-
-	/* Получение IEcoCalculatorX через агрегирование и демонстрация его работы */
-	result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoCalculatorX, (void **)&pIX);
+	printf("\n--- TEST 1: Interface B aggregation---\n");
+	result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoCalculatorX, (void**) &pIX);
 	if (result != 0 || pIX == 0) {
-        /* Освобождение интерфейсов в случае ошибки */
-       goto Release;
-    }
- 
-
-	printf("\n--- TEST 1: Interfaces aggregation ---\n");
-	printf("IEcoCalculatorX aggregation\n");
-    printf("Addition 3+5 = %d\n", pIX->pVTbl->Addition(pIX, 3, 5));
-	printf("Addition -1+1 = %d\n", pIX->pVTbl->Addition(pIX, -1, 1));
-	printf("Addition 0+0 = %d\n", pIX->pVTbl->Addition(pIX, 0, 0));
-    printf("Subtraction 10-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 5));
-	printf("Subtraction 5-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 5, 5));
-	printf("Subtraction 0-(-5) = %d\n", pIX->pVTbl->Subtraction(pIX, 0, -5));
-
-	/* Получение IEcoCalculatorY через агрегирование и демонстрация его работы */
-	result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoCalculatorY, (void **)&pIY);
-	if (result != 0 || pIX == 0) {
-        /* Освобождение интерфейсов в случае ошибки */
-       goto Release;
-    }
-	printf("IEcoCalculatorY aggregation\n");
-    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
-	printf("Multiplication 10*0 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 0));
-	printf("Multiplication -1*(-1) = %d\n", pIY->pVTbl->Multiplication(pIY, -1, -1));
-    printf("Division 10:5 = %d\n", pIY->pVTbl->Division(pIY, 10, 5));
-	printf("Division 0:5 = %d\n", pIY->pVTbl->Division(pIY, 0, 5));
-	printf("Division 6:(-2) = %d\n", pIY->pVTbl->Division(pIY, 6, -2));
-
+			printf("Can`t get CalculatorX interface through EcoLab1 by component B agregation\n");
+			goto Release;
+		}
+	printf("Addition 10+5 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 5));
+	printf("Subtraction 10-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 5));
 	pIY = 0;
-	pIX = 0;
 
-	printf("\n--- TEST 2: Test components through interfaces ---\n");
-	/* Тестируем компонент EcoCalculatorE */
-	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorE, 0, &IID_IEcoCalculatorY, (void **)&pIY);
-    if (result == 0 && pIY != 0)
-    {
-        printf("EcoCalculatorE from IEcoCalculatorY\n");
+
+	printf("\n--- TEST 2: Include E component(with agregated B component)---\n");
+	/* Получение интерфейса по работе с умножением и делением у компонента "E" агрегирующего компонент "B" */
+	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorE, 0, &IID_IEcoCalculatorY, (void**) &pIY);
+    if (result == 0 && pIY != 0) {
         /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
-        printf("Multiplication 2*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 2, 2));
-        printf("Division 2/2 = %d\n", pIY->pVTbl->Division(pIY, 2, 2));
-    }
-    /* Тестируем компонент EcoCalculatorD */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void **)&pIY);
-    if (result == 0 && pIY != 0)
-    {
-        printf("EcoCalculatorD from IEcoCalculatorY\n");
-        printf("Multiplication 2*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 2, 2));
-        printf("Division 2/2 = %d\n", pIY->pVTbl->Division(pIY, 2, 2));
-    }
-
-    /* Тестируем компонент EcoCalculatorС */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorC, 0, &IID_IEcoCalculatorY, (void **)&pIY);
-    if (result == 0 && pIY != 0)
-    {
-        printf("EcoCalculatorC from IEcoCalculatorY\n");
-        printf("Multiplication 2*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 2, 2));
-        printf("Division 2/2 = %d\n", pIY->pVTbl->Division(pIY, 2, 2));
-    }
-    /* Тестируем компонент EcoCalculatorB c поддержкой агрегирования */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, 0, &IID_IEcoCalculatorX, (void **)&pIX);
-    if (result == 0 && pIX != 0)
-    {
-        printf("EcoCalculatorB from IEcoCalculatorX\n");
-        printf("Addition 2+2 = %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
-        printf("Subtraction 2-2 = %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
-
+        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void**) &pIX);
+		if (result != 0 || pIX == 0) {
+			printf("Can`t get CalculatorX interface(from B component) through CalculatorY interface in E component\n");
+			goto Release;
+		}
+    } else {
+		printf("Can`t include E component\n");
+		goto Release;
 	}
-
-	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorA, 0, &IID_IEcoCalculatorX, (void **)&pIX);
-    if (result == 0 && pIX != 0)
-    {
-        printf("EcoCalculatorA from IEcoCalculatorX\n");
-        printf("Addition 2+2 = %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
-        printf("Subtraction 2-2 = %d\n", pIX->pVTbl->Subtraction(pIX, 2, 2));
-	}
-
-	pIX = 0;
+	printf("Addition 0+0 = %d\n", pIX->pVTbl->Addition(pIX, 0, 0));
+	printf("Subtraction 0-(-5) = %d\n", pIX->pVTbl->Subtraction(pIX, 0, -5));
+    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
+	printf("Division 10/2 = %d\n", pIY->pVTbl->Division(pIY, 10, 2));
 	pIY = 0;
+	pIX = 0;
 
-	printf("\n--- TEST 3: CEcoLab1 functionality ---\n");
-    /* Тестирование калькулятора через методы CEcoLab1 */
-    printf("CEcoLab1 Addition: -50 + 100 = %d\n", pIEcoLab1->pVTbl->Addition(pIEcoLab1, -50, 100));
-    printf("CEcoLab1 Subtraction: -5 - (-5) = %d\n",  pIEcoLab1->pVTbl->Subtraction(pIEcoLab1, -5, -5));
-    printf("CEcoLab1 Multiplication: 8 * 9 = %d\n", pIEcoLab1->pVTbl->Multiplication(pIEcoLab1, 8, 9));
-    printf("CEcoLab1 Division: 45 / 5 = %d\n", pIEcoLab1->pVTbl->Division(pIEcoLab1, 45, 5));
+	printf("\n--- TEST 3: Include D component(with included A component)---\n");
+	 /* Получение интерфейса по работе с умножением и делением у компонента "D" включающего компонент "A" */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void**) &pIY);
+	if (result == 0 && pIY != 0) {
+            /* Получение интерфейса по работе со сложением и вычитанием у компонента "A" */
+        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void**) &pIX);
+		if (result != 0 || pIX == 0) {
+			printf("Can`t get CalculatorX interface(from A component) through CalculatorY interface in D component\n");
+			goto Release;
+		}
+	} else {
+		printf("Can`t include D component\n");
+		goto Release;
+	}
+	printf("Addition 2+2 = %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+	printf("Subtraction 0-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 0, 5));
+    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
+	printf("Division 10/2 = %d\n", pIY->pVTbl->Division(pIY, 10, 2));
+	pIY = 0;
+	pIX = 0;
 
+	printf("\n--- TEST 4: Include C component(it realizes both X and Y calculators)---\n");
+    /* Получение интерфейса по работе с умножением и делением у компонента "C" */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorC, 0, &IID_IEcoCalculatorY, (void**) &pIY);
+    if (result == 0 && pIY != 0) {
+                /* Получение интерфейса по работе со сложением и вычитанием у компонента "C" */
+		result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void**) &pIX);
+		if (result != 0 || pIX == 0) {
+			printf("Can`t get CalculatorX interface through CalculatorY interface in C component\n");
+			goto Release;
+		}
+    } else {
+		printf("Can`t include C component\n");
+		goto Release;
+	}
+
+	printf("Addition 2+2 = %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
+	printf("Subtraction 0-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 0, 5));
+    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
+	printf("Division 10/2 = %d\n", pIY->pVTbl->Division(pIY, 10, 2));
+	pIY = 0;
+	pIX = 0;
+
+	printf("\n--- TEST 5: Include B component---\n");
+    /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, 0, &IID_IEcoCalculatorX, (void**) &pIX);
+    if (result != 0 || pIX == 0) {
+		goto Release;
+    }
+	printf("Addition -2+2 = %d\n", pIX->pVTbl->Addition(pIX, -2, 2));
+	printf("Subtraction -5-5 = %d\n", pIX->pVTbl->Subtraction(pIX, -5, 5));
+	pIX = 0;
+
+	printf("\n--- TEST 6: Include A component---\n");
+    /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, 0, &IID_IEcoCalculatorX, (void**) &pIX);
+    if (result != 0 || pIX == 0) {
+		goto Release;
+    }
+	printf("Addition 10+2 = %d\n", pIX->pVTbl->Addition(pIX, 10, 2));
+	printf("Subtraction 10-2 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 2));
+	pIX = 0;
+
+      
+	printf("\n--- TEST 7: Use EcoLab1 methods---\n");
     for (i = 1; i <= 10; i++)
     {
         arrayLength = 10;

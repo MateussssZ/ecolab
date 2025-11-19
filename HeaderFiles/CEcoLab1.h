@@ -55,6 +55,8 @@ typedef struct CEcoLab1 {
 	/* Таблица функций интерфейса IEcoCalculatorX */
     IEcoCalculatorXVTbl *m_pVTblIX;
 
+	IEcoUnknown *m_pInnerUnknown;
+
 } CEcoLab1, *CEcoLab1Ptr;
 
 /* Инициализация экземпляра */

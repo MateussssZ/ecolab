@@ -43,10 +43,6 @@ typedef struct IEcoLab1VTbl {
     /* IEcoLab1 */
 	int16_t (ECOCALLMETHOD *InsertionSort)(/* in */ IEcoLab1Ptr_t me, /* in */ int32_t *inputArray,/* in */ uint32_t length,/* out */ int32_t **sortedArray);
 	int16_t(ECOCALLMETHOD *PseudoGenerator)(/* in */ IEcoLab1Ptr_t me, /* in */ uint32_t length, /* in */ uint32_t seed, /* out */ int32_t **generatedArray);
-	int16_t(ECOCALLMETHOD *Addition)(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b);
-	int16_t(ECOCALLMETHOD *Subtraction)(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b);
-	int16_t(ECOCALLMETHOD *Multiplication)(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b);
-	int16_t(ECOCALLMETHOD *Division)(/* in */ IEcoLab1Ptr_t me, /* in */ int16_t a, /* in */ int16_t b);
 
 } IEcoLab1VTbl, *IEcoLab1VTblPtr;
 
