@@ -23,9 +23,13 @@
 #include "IdEcoMemoryManager1.h"
 #include "IdEcoInterfaceBus1.h"
 #include "IdEcoFileSystemManagement1.h"
+#include "C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\SharedFiles\IEcoLab1Events.h"
 #include "IdEcoLab1.h"
 #include <time.h>
 #include <stdio.h>
+
+#include "C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\UnitTestFiles\HeaderFiles\CEcoLab1Sink.h"
+#include "IEcoConnectionPointContainer.h"
 
 #include "C:\Users\01kri\Downloads\Eco.CalculatorC\SharedFiles\IEcoCalculatorX.h"
 #include "C:\Users\01kri\Downloads\Eco.CalculatorD\SharedFiles\IEcoCalculatorY.h"
@@ -77,6 +81,15 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
 	IEcoCalculatorX *pIX = 0;
     IEcoCalculatorY *pIY = 0;
 
+	 /* Указатель на интерфейс контейнера точек подключения */
+    IEcoConnectionPointContainer* pICPC = 0;
+    /* Указатель на интерфейс точки подключения */
+    IEcoConnectionPoint* pICP = 0;
+    /* Указатель на обратный интерфейс */
+    IEcoLab1Events* pIEcoLab1Sink = 0;
+    IEcoUnknown* pISinkUnk = 0;
+    uint32_t cAdvise = 0;
+
 	int32_t *sorted_arr;
     int32_t *generated_arr;
     uint32_t arrayLength;
@@ -106,6 +119,13 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         /* Освобождение в случае ошибки */
         goto Release;
     }
+
+	 result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoList1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_53884AFC93C448ECAA929C8D3A562281);
+    if (result != 0 ) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+
 
 	result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoCalculatorB, (IEcoUnknown*)GetIEcoComponentFactoryPtr_AE202E543CE54550899603BD70C62565);
     if (result != 0) {
@@ -148,138 +168,78 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         /* Освобождение интерфейсов в случае ошибки */
         goto Release;
     }
-	printf("\n--- TEST 1: Interface B aggregation---\n");
-	result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoCalculatorX, (void**) &pIX);
-	if (result != 0 || pIX == 0) {
-			printf("Can`t get CalculatorX interface through EcoLab1 by component B agregation\n");
-			goto Release;
-		}
-	printf("Addition 10+5 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 5));
-	printf("Subtraction 10-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 5));
-	pIY = 0;
-
-
-	printf("\n--- TEST 2: Include E component(with agregated B component)---\n");
-	/* Получение интерфейса по работе с умножением и делением у компонента "E" агрегирующего компонент "B" */
-	result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorE, 0, &IID_IEcoCalculatorY, (void**) &pIY);
-    if (result == 0 && pIY != 0) {
-        /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
-        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void**) &pIX);
-		if (result != 0 || pIX == 0) {
-			printf("Can`t get CalculatorX interface(from B component) through CalculatorY interface in E component\n");
-			goto Release;
-		}
-    } else {
-		printf("Can`t include E component\n");
-		goto Release;
-	}
-	printf("Addition 0+0 = %d\n", pIX->pVTbl->Addition(pIX, 0, 0));
-	printf("Subtraction 0-(-5) = %d\n", pIX->pVTbl->Subtraction(pIX, 0, -5));
-    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
-	printf("Division 10/2 = %d\n", pIY->pVTbl->Division(pIY, 10, 2));
-	pIY = 0;
-	pIX = 0;
-
-	printf("\n--- TEST 3: Include D component(with included A component)---\n");
-	 /* Получение интерфейса по работе с умножением и делением у компонента "D" включающего компонент "A" */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void**) &pIY);
-	if (result == 0 && pIY != 0) {
-            /* Получение интерфейса по работе со сложением и вычитанием у компонента "A" */
-        result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void**) &pIX);
-		if (result != 0 || pIX == 0) {
-			printf("Can`t get CalculatorX interface(from A component) through CalculatorY interface in D component\n");
-			goto Release;
-		}
-	} else {
-		printf("Can`t include D component\n");
-		goto Release;
-	}
-	printf("Addition 2+2 = %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
-	printf("Subtraction 0-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 0, 5));
-    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
-	printf("Division 10/2 = %d\n", pIY->pVTbl->Division(pIY, 10, 2));
-	pIY = 0;
-	pIX = 0;
-
-	printf("\n--- TEST 4: Include C component(it realizes both X and Y calculators)---\n");
-    /* Получение интерфейса по работе с умножением и делением у компонента "C" */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorC, 0, &IID_IEcoCalculatorY, (void**) &pIY);
-    if (result == 0 && pIY != 0) {
-                /* Получение интерфейса по работе со сложением и вычитанием у компонента "C" */
-		result = pIY->pVTbl->QueryInterface(pIY, &IID_IEcoCalculatorX, (void**) &pIX);
-		if (result != 0 || pIX == 0) {
-			printf("Can`t get CalculatorX interface through CalculatorY interface in C component\n");
-			goto Release;
-		}
-    } else {
-		printf("Can`t include C component\n");
-		goto Release;
-	}
-
-	printf("Addition 2+2 = %d\n", pIX->pVTbl->Addition(pIX, 2, 2));
-	printf("Subtraction 0-5 = %d\n", pIX->pVTbl->Subtraction(pIX, 0, 5));
-    printf("Multiplication 10*2 = %d\n", pIY->pVTbl->Multiplication(pIY, 10, 2));
-	printf("Division 10/2 = %d\n", pIY->pVTbl->Division(pIY, 10, 2));
-	pIY = 0;
-	pIX = 0;
-
-	printf("\n--- TEST 5: Include B component---\n");
-    /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, 0, &IID_IEcoCalculatorX, (void**) &pIX);
-    if (result != 0 || pIX == 0) {
-		goto Release;
+	/* Проверка поддержки подключений обратного интерфейса */
+    result = pIEcoLab1->pVTbl->QueryInterface(pIEcoLab1, &IID_IEcoConnectionPointContainer, (void **)&pICPC);
+    if (result != 0 || pICPC == 0) {
+        /* Освобождение интерфейсов в случае ошибки */
+        goto Release;
     }
-	printf("Addition -2+2 = %d\n", pIX->pVTbl->Addition(pIX, -2, 2));
-	printf("Subtraction -5-5 = %d\n", pIX->pVTbl->Subtraction(pIX, -5, 5));
-	pIX = 0;
 
-	printf("\n--- TEST 6: Include A component---\n");
-    /* Получение интерфейса по работе со сложением и вычитанием у компонента "B" */
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, 0, &IID_IEcoCalculatorX, (void**) &pIX);
-    if (result != 0 || pIX == 0) {
-		goto Release;
+    /* Запрос на получения интерфейса точки подключения */
+    result = pICPC->pVTbl->FindConnectionPoint(pICPC, &IID_IEcoLab1Events, &pICP);
+    if (result != 0 || pICP == 0) {
+        /* Освобождение интерфейсов в случае ошибки */
+        goto Release;
     }
-	printf("Addition 10+2 = %d\n", pIX->pVTbl->Addition(pIX, 10, 2));
-	printf("Subtraction 10-2 = %d\n", pIX->pVTbl->Subtraction(pIX, 10, 2));
-	pIX = 0;
 
-      
-	printf("\n--- TEST 7: Use EcoLab1 methods---\n");
-    for (i = 1; i <= 10; i++)
+	pICPC->pVTbl->Release(pICPC);
+
+    /* Создание экземпляра обратного интерфейса */
+    result = createCEcoLab1Sink(pIMem, (IEcoLab1Events**)&pIEcoLab1Sink);
+
+    if (pIEcoLab1Sink != 0) {
+        result = pIEcoLab1Sink->pVTbl->QueryInterface(pIEcoLab1Sink, &IID_IEcoUnknown,(void **)&pISinkUnk);
+        if (result != 0 || pISinkUnk == 0) {
+            /* Освобождение интерфейсов в случае ошибки */
+            goto Release;
+        }
+        /* Подключение */
+        result = pICP->pVTbl->Advise(pICP, pISinkUnk, &cAdvise);
+        /* Проверка */
+        if (result == 0 && cAdvise == 1) {
+            printf("Succesfully sinked");
+        }
+        /* Освобождение интерфейса */
+        pISinkUnk->pVTbl->Release(pISinkUnk);
+    }
+
+	printf("\nTEST 1: Use ecolab1 method(PseudoGenerator) which contains fire methods with calling single connectable object method\n");
+    arrayLength = 10;
+	/* Генерация массива */
+	printf("Before sort:");
+    result = pIEcoLab1->pVTbl->PseudoGenerator(pIEcoLab1, arrayLength, i, &generated_arr);
+    if (result != ERR_ECO_SUCCESES)
     {
-        arrayLength = 10;
-		/* Генерация массива */
-        result = pIEcoLab1->pVTbl->PseudoGenerator(pIEcoLab1, arrayLength, i, &generated_arr);
-        if (result != ERR_ECO_SUCCESES)
-        {
-            pIMem->pVTbl->Free(pIMem, generated_arr);
-            goto Release;
-        }
-
-		/* Старт алгоритма */
-        start = clock();
-		printf("Before sort:");
-		print_array_basic(generated_arr, arrayLength);
-		result = pIEcoLab1->pVTbl->InsertionSort(pIEcoLab1, generated_arr, arrayLength, &sorted_arr);
-		printf("After sort:");
-		print_array_basic(sorted_arr, arrayLength);
-		/* Конец алгоритма */
-        end = clock();
-        if (result != ERR_ECO_SUCCESES)
-        {
-            pIMem->pVTbl->Free(pIMem, sorted_arr);
-            goto Release;
-        }
-        cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-		printf("\n\n");
-        //printf("InsertionSort (length = %u) time: %f seconds\n", arrayLength, cpu_time_used);
-
-		/* Освобождение выделенной памяти массивов */
 		pIMem->pVTbl->Free(pIMem, generated_arr);
-		generated_arr = 0;
-		pIMem->pVTbl->Free(pIMem, sorted_arr);
-		sorted_arr = 0;
+        goto Release;
     }
+
+	printf("\nTEST 2: Use ecolab1 method(InsertionSort) which contains fire methods with calling multiple connectable object methods\n");
+	/* Старт алгоритма */
+	result = pIEcoLab1->pVTbl->InsertionSort(pIEcoLab1, generated_arr, arrayLength, &sorted_arr);
+	/* Конец алгоритма */
+    if (result != ERR_ECO_SUCCESES)
+    {
+		pIMem->pVTbl->Free(pIMem, sorted_arr);
+		goto Release;
+    }
+	printf("\n\n");
+
+
+    /* Освобождение блока памяти */
+    pIMem->pVTbl->Free(pIMem, generated_arr);
+	generated_arr = 0;
+	pIMem->pVTbl->Free(pIMem, sorted_arr);
+	sorted_arr = 0;
+
+    
+    if (pIEcoLab1Sink != 0) {
+        /* Отключение */
+        result = pICP->pVTbl->Unadvise(pICP, cAdvise);
+        pIEcoLab1Sink->pVTbl->Release(pIEcoLab1Sink);
+        pICP->pVTbl->Release(pICP);
+    }
+
 
 Release:
 	/* Освобождение выделенной памяти массивов */

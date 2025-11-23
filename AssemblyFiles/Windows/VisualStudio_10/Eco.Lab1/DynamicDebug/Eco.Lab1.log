@@ -1,14 +1,25 @@
-﻿Build started 18.11.2025 0:10:44.
+﻿Build started 23.11.2025 19:20:05.
      1>Project "C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\AssemblyFiles\Windows\VisualStudio_10\Eco.Lab1.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Creating "Eco.Lab1\DynamicDebug\Eco.Lab1.unsuccessfulbuild" because "AlwaysCreate" was specified.
+         Touching "Eco.Lab1\DynamicDebug\Eco.Lab1.unsuccessfulbuild".
        ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /I"C:\Program Files (x86)\Eco.Framework\Eco.Core1\SharedFiles" /I"C:\Program Files (x86)\Eco.Framework\Eco.InterfaceBus1\SharedFiles" /I"C:\Program Files (x86)\Eco.Framework\Eco.System1\SharedFiles" /I"C:\Program Files (x86)\Eco.Framework\Eco.MemoryManager1\SharedFiles" /I"C:\Program Files (x86)\Eco.Framework\Eco.FileSystemManagement1\SharedFiles" /I"C:\Program Files (x86)\Eco.Framework\Eco.List1\SharedFiles" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_X86_32 /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_DLL /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Eco.Lab1\DynamicDebug\\" /Fd"Eco.Lab1\DynamicDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoLab1.c
          CEcoLab1.c
-     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(287): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(268): warning C4133: 'function' : incompatible types - from 'int32_t *' to 'char_t *'
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(335): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(556): warning C4047: 'function' : 'IEcoConnectionPoint *' differs in levels of indirection from 'IEcoConnectionPointVTbl **'
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(556): warning C4024: 'createCEcoLab1EnumConnectionPoints' : different types for formal and actual parameter 2
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(591): warning C4047: 'function' : 'IEcoConnectionPoint *' differs in levels of indirection from 'IEcoConnectionPointVTbl **'
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(591): warning C4024: 'function through pointer' : different types for formal and actual parameter 1
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(592): warning C4047: '=' : 'IEcoConnectionPoint *' differs in levels of indirection from 'IEcoConnectionPointVTbl **'
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(664): warning C4047: 'function' : 'IEcoConnectionPointContainer *' differs in levels of indirection from 'IEcoConnectionPointContainerVTbl **'
+     1>c:\users\01kri\onedrive\документы\visual studio 2010\projects\eco.lab1\sourcefiles\cecolab1.c(664): warning C4024: 'createCEcoLab1ConnectionPoint' : different types for formal and actual parameter 2
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\AssemblyFiles\Windows\VisualStudio_10\Eco.Lab1\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.dll) does not match the Linker's OutputFile property value (C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\BuildFiles\Windows\x86\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"..\..\..\BuildFiles\Windows\x86\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.dll" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Eco.Lab1\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\AssemblyFiles\Windows\VisualStudio_10\Eco.Lab1\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\AssemblyFiles\Windows\VisualStudio_10\Eco.Lab1\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.lib" /MACHINE:X86 /DLL Eco.Lab1\DynamicDebug\CEcoLab1.obj
+         Eco.Lab1\DynamicDebug\CEcoLab1ConnectionPoint.obj
+         Eco.Lab1\DynamicDebug\CEcoLab1EnumConnectionPoints.obj
+         Eco.Lab1\DynamicDebug\CEcoLab1EnumConnections.obj
          Eco.Lab1\DynamicDebug\CEcoLab1Factory.obj
          LINK : ..\..\..\BuildFiles\Windows\x86\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.dll not found or not built by the last incremental link; performing full link
             Creating library C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\AssemblyFiles\Windows\VisualStudio_10\Eco.Lab1\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.lib and object C:\Users\01kri\OneDrive\Документы\Visual Studio 2010\Projects\Eco.Lab1\AssemblyFiles\Windows\VisualStudio_10\Eco.Lab1\DynamicDebug\1F5DF16EE1BF43B999A434ED38FE8F3A.exp
@@ -22,4 +33,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.74
+Time Elapsed 00:00:02.21

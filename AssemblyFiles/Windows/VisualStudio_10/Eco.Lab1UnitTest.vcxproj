@@ -177,7 +177,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\UnitTestFiles\SourceFiles\CEcoLab1Sink.c" />
     <ClCompile Include="..\..\..\UnitTestFiles\SourceFiles\EcoLab1.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\UnitTestFiles\HeaderFiles\CEcoLab1Sink.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
