@@ -66,138 +66,188 @@ void TimerHandler(void) {
 
 /* Функция для теста Worst Fit Allocator */
 void TestWorstFitAllocator(IEcoMemoryAllocator1* pIMem, IEcoVBIOS1Video* pVideo) {
-    void* pointers[10] = {0};
+    void* pointers[20] = {0};
     char_t* dataCheck = 0;
     int i;
     int line = 5;  // Начальная строка для вывода
 
-    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, 
-        CHARACTER_ATTRIBUTE_FORE_COLOR_CYAN, "=== WORST FIT ALGORITHM TEST ===", 32);
+    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_CYAN, "=== WORST FIT ALGORITHM TEST ===", 32);
 
-    /* --- TEST 1: Демонстрация Worst Fit поведения --- */
+    /* === ТЕСТ 1: Выделение и освобождение === */
     pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, 
-        CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 1: Worst Fit Selection", 27);
+        CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 1: Basic Alloc/Free", 24);
     
-    /* Создаем искусственные блоки (в реальности они создаются при выделениях) */
-    pointers[0] = pIMem->pVTbl->Alloc(pIMem, 100);   /* Маленький блок */
-    pointers[1] = pIMem->pVTbl->Alloc(pIMem, 200);   /* Средний блок */
-    pointers[2] = pIMem->pVTbl->Alloc(pIMem, 500);   /* Большой блок */
+    /* Выделяем небольшой блок */
+    pointers[0] = pIMem->pVTbl->Alloc(pIMem, 512);  // 0.5K
     
-    /* Освобождаем их чтобы создать свободные блоки разных размеров */
-    if (pointers[0]) pIMem->pVTbl->Free(pIMem, pointers[0]);  /* Остается блок 100 */
-    if (pointers[1]) pIMem->pVTbl->Free(pIMem, pointers[1]);  /* Остается блок 200 */
-    if (pointers[2]) pIMem->pVTbl->Free(pIMem, pointers[2]);  /* Остается блок 500 */
-    
-    /* Теперь запрашиваем 150 байт - Worst Fit должен выбрать 500! */
-    pointers[3] = pIMem->pVTbl->Alloc(pIMem, 150);
-    if (pointers[3] != 0) {
-        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, 
-            CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Alloc 150: Used largest block (500)", 45);
+    if (pointers[0]) {
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Alloc 100 bytes", 23);
+        
+        /* Освобождаем */
+        pIMem->pVTbl->Free(pIMem, pointers[0]);
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Free successful", 24);
+        
     } else {
-        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Alloc 150 failed", 26);
-    }
-    
-    /* Освобождаем для следующих тестов */
-    if (pointers[3]) pIMem->pVTbl->Free(pIMem, pointers[3]);
-
-    /* --- TEST 2: Проверка разделения блоков --- */
-    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 2: Block Splitting", 23);
-    
-    /* Выделяем большой блок и сразу освобождаем */
-    pointers[4] = pIMem->pVTbl->Alloc(pIMem, 1000);
-    if (pointers[4]) {
-        pIMem->pVTbl->Free(pIMem, pointers[4]);
-        
-        /* Теперь запрашиваем маленький блок - должен разделить 1000 */
-        pointers[5] = pIMem->pVTbl->Alloc(pIMem, 100);
-        if (pointers[5]) {
-            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++,  CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] 1000 split into 100 + 900", 33);
-            pIMem->pVTbl->Free(pIMem, pointers[5]);
-        }
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, 
+            CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Initial alloc failed", 29);
     }
 
-    /* --- TEST 3: Проверка объединения блоков --- */
-    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 3: Block Coalescing", 24);
+    /* === TEST 2: Демонстрация Worst Fit выбора === */
+    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 2: Worst Fit Selection", 27);
     
-    /* Выделяем два соседних блока */
-    pointers[6] = pIMem->pVTbl->Alloc(pIMem, 100);
-    pointers[7] = pIMem->pVTbl->Alloc(pIMem, 100);
+    /* Выделяем 4 блока, которые займут почти всю кучу */
+    pointers[0] = pIMem->pVTbl->Alloc(pIMem, 1024);   // 1K
+    pointers[1] = pIMem->pVTbl->Alloc(pIMem, 4096);   // 4K
+    pointers[2] = pIMem->pVTbl->Alloc(pIMem, 2048);   // 2K
+    pointers[3] = pIMem->pVTbl->Alloc(pIMem, 6144);   // 6K (самый большой)
     
-    if (pointers[6] && pointers[7]) {
-        /* Освобождаем оба - они должны объединиться */
-        pIMem->pVTbl->Free(pIMem, pointers[6]);
-        pIMem->pVTbl->Free(pIMem, pointers[7]);
+    /* Итого: 1K + 4K + 2K + 6K = 13K, осталось ~3K свободными */
+    
+    if (pointers[0] && pointers[1] && pointers[2] && pointers[3]) {
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, 
+            CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  Created: 1K, 4K, 2K, 6K blocks", 32);
         
-        /* Пытаемся выделить блок 250 - должен получиться если объединились */
-        pointers[8] = pIMem->pVTbl->Alloc(pIMem, 250);
-        if (pointers[8]) {
-            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Blocks merged successfully", 35);
-            pIMem->pVTbl->Free(pIMem, pointers[8]);
+        /* Пытаемся выделить еще 2K - должно получиться */
+        pointers[4] = pIMem->pVTbl->Alloc(pIMem, 2048);
+        if (pointers[4]) {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Allocated remaining 2K", 31);
         } else {
-            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Blocks didn't merge", 29);
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] No space for 2K (fragmentation failed)", 47);
         }
+
+        pointers[5] = pIMem->pVTbl->Alloc(pIMem, 8192);
+        if (pointers[5] == NULL) {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Can`t alloc 8K(heap is full)", 37);
+        } else {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Allocation succeed(wrong behaviour)", 44);
+        }
+
+        if (pointers[0]) pIMem->pVTbl->Free(pIMem, pointers[0]);
+        if (pointers[1]) pIMem->pVTbl->Free(pIMem, pointers[1]);
+        if (pointers[2]) pIMem->pVTbl->Free(pIMem, pointers[2]);
+        if (pointers[3]) pIMem->pVTbl->Free(pIMem, pointers[3]);
+        if (pointers[4]) pIMem->pVTbl->Free(pIMem, pointers[4]);
+        if (pointers[5]) pIMem->pVTbl->Free(pIMem, pointers[5]);
+        
+    } else {
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Failed to alloc 4 blocks(1+4+2+6 Kb)", 45);
     }
 
-    /* --- TEST 4: Тест на фрагментацию --- */
-    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 4: Fragmentation Test", 26);
+    /* === TEST 3: Разделение блоков === */
+    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 3: Block Splitting", 23);
     
-    /* Выделяем несколько блоков разных размеров */
-    void* frag_ptrs[5];
-    for (i = 0; i < 5; i++) {
-        frag_ptrs[i] = pIMem->pVTbl->Alloc(pIMem, (i+1) * 50);  /* 50, 100, 150, 200, 250 */
-    }
-    
-    /* Освобождаем не все подряд */
-    pIMem->pVTbl->Free(pIMem, frag_ptrs[1]);  /* Освобождаем 100 */
-    pIMem->pVTbl->Free(pIMem, frag_ptrs[3]);  /* Освобождаем 200 */
-    
-    /* Пытаемся выделить 300 - Worst Fit должен найти подходящий блок */
-    void* large_alloc = pIMem->pVTbl->Alloc(pIMem, 300);
-    if (large_alloc) {
-        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Found space despite fragmentation", 41);
-        pIMem->pVTbl->Free(pIMem, large_alloc);
-    }
-    
-    /* Очистка */
-    for (i = 0; i < 5; i++) {
-        if (frag_ptrs[i] && i != 1 && i != 3) {  /* Уже освободили 1 и 3 */
-            pIMem->pVTbl->Free(pIMem, frag_ptrs[i]);
+    pointers[0] = pIMem->pVTbl->Alloc(pIMem, 1024);  //1 Kb
+    pointers[1] = pIMem->pVTbl->Alloc(pIMem, 100);  //100 b
+    if (pointers[0]) {
+        pIMem->pVTbl->Free(pIMem, pointers[0]);  // Освобождаем
+        
+        if (pointers[1]) {
+            /* Запрашиваем маленький блок - должен разделить ~15Kb, которые после pointers[1] */
+            pointers[2] = pIMem->pVTbl->Alloc(pIMem, 100); //100 b
+            if (pointers[2]) {
+                if (pointers[1] < pointers[2]) {
+                    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Block correctly split", 30);
+                }
+
+                /* Очистка */
+                if (pointers[1]) pIMem->pVTbl->Free(pIMem, pointers[1]);
+                if (pointers[2]) pIMem->pVTbl->Free(pIMem, pointers[2]);
+            } 
+        } else {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Failed to alloc  blocks", 32);
         }
+    } else {
+         pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Failed to alloc  blocks", 32);
     }
 
-    /* --- TEST 5: Пограничные случаи --- */
+    /* === TEST 4: Объединение блоков === */
+    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 4: Block Coalescing", 24);
+    
+    /* Выделяем три последовательных блока */
+    pointers[0] = pIMem->pVTbl->Alloc(pIMem, 4096); //4Kb
+    pointers[1] = pIMem->pVTbl->Alloc(pIMem, 4096); //4Kb
+    pointers[2] = pIMem->pVTbl->Alloc(pIMem, 4096); //4Kb
+    // Останется ещё ~4К
+    
+    if (pointers[0] && pointers[1] && pointers[2]) {
+        /* Освобождаем средний блок */
+        pIMem->pVTbl->Free(pIMem, pointers[1]);
+        /* Сейчас не должно быть выделения, т.к. у нас 4 блока по 4 Кб и они заняты в шахматном порядке */
+        pointers[3] = pIMem->pVTbl->Alloc(pIMem, 7168); //7Kb
+        if (pointers[3] == NULL) {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Memory not allocated(4 blocks of 4Kb are occupied in turn)", 67);
+        } else {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] unexpected memory allocation", 37);
+        }
+        
+        /* Освобождаем первый блок - они должны объединиться со вторым */
+        pIMem->pVTbl->Free(pIMem, pointers[0]);
+        
+        /* Теперь у нас есть объединенный блок 8Kb + заголовки */
+        pointers[3] = pIMem->pVTbl->Alloc(pIMem, 7168); //7Kb
+        if (pointers[3]) {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Blocks merged (left)", 29);
+        } else {
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Blocks not merged", 26);
+        }
+        
+        /* Очистка */
+        if (pointers[2]) pIMem->pVTbl->Free(pIMem, pointers[2]);
+        if (pointers[3]) pIMem->pVTbl->Free(pIMem, pointers[3]);
+    } else {
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Failed to alloc 3 blocks(4+4+4 Kb)", 43);
+    }
+
+    /* === TEST 5: Пограничные случаи === */
     pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 5: Edge Cases", 18);
+    
+    int edge_passed = 0;
     
     /* Выделение 0 байт */
     void* zero_alloc = pIMem->pVTbl->Alloc(pIMem, 0);
     if (zero_alloc == NULL) {
         pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Alloc(0) returns NULL", 30);
+        edge_passed++;
     }
     
     /* Освобождение NULL */
     pIMem->pVTbl->Free(pIMem, NULL);
-    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Free(NULL) handled", 27);
+    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Free(NULL) is safe", 26);
+    edge_passed++;
+    
+    /* Двойное освобождение */
+    pointers[14] = pIMem->pVTbl->Alloc(pIMem, 50);
+    if (pointers[14]) {
+        pIMem->pVTbl->Free(pIMem, pointers[14]);
+        pIMem->pVTbl->Free(pIMem, pointers[14]);  // Второй раз
+        pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Double free handled", 28);
+        edge_passed++;
+    }
     
     /* Выделение больше чем есть */
-    void* huge_alloc = pIMem->pVTbl->Alloc(pIMem, 10 * 1024 * 1024);  /* 10 MB */
+    void* huge_alloc = pIMem->pVTbl->Alloc(pIMem, 10 * 1024 * 1024);
     if (huge_alloc == NULL) {
         pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Out of memory handled", 30);
+        edge_passed++;
+    }
+    
+    if (edge_passed >= 4) {
     }
 
-    /* --- TEST 6: Целостность данных --- */
+    /* === TEST 6: Целостность данных === */
     pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_YELLOW, "Test 6: Data Integrity", 22);
     
-    pointers[9] = pIMem->pVTbl->Alloc(pIMem, 100);
-    if (pointers[9]) {
+    pointers[15] = pIMem->pVTbl->Alloc(pIMem, 256);
+    if (pointers[15]) {
         /* Записываем данные */
-        dataCheck = (char_t*)pointers[9];
-        for (i = 0; i < 100; i++) {
+        dataCheck = (char_t*)pointers[15];
+        for (i = 0; i < 256; i++) {
             dataCheck[i] = (char_t)(i % 256);
         }
         
         /* Проверяем */
         int valid = 1;
-        for (i = 0; i < 100; i++) {
+        for (i = 0; i < 256; i++) {
             if (dataCheck[i] != (char_t)(i % 256)) {
                 valid = 0;
                 break;
@@ -207,13 +257,11 @@ void TestWorstFitAllocator(IEcoMemoryAllocator1* pIMem, IEcoVBIOS1Video* pVideo)
         if (valid) {
             pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_GREEN, "  [PASS] Data integrity verified", 32);
         } else {
-            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Data corruption detected", 33);
+            pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_RED, "  [FAIL] Data corruption!", 25);
         }
         
-        pIMem->pVTbl->Free(pIMem, pointers[9]);
+        pIMem->pVTbl->Free(pIMem, pointers[15]);
     }
-
-    pVideo->pVTbl->WriteString(pVideo, 0, 0, 1, line++, CHARACTER_ATTRIBUTE_FORE_COLOR_CYAN, "=== WORST FIT TEST COMPLETE ===", 31);
 }
 
 /*
@@ -237,7 +285,7 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     IEcoMemoryAllocator1* pIMem = 0;
     IEcoMemoryManager1* pIMemMgr = 0;
     IEcoMemoryManager1* pIMemMgrLab = 0;        /* Лабораторный менеджер */
-    IEcoMemoryAllocator1* pIAllocatorLab = 0;   /* Для тестирования Worst Fit */
+
 
     IEcoInterfaceBus1MemExt* pIMemExt = 0;
     IEcoVirtualMemory1* pIVrtMem = 0;
@@ -297,20 +345,19 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     /* Получение интерфейса управления памятью */
     pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1, 0, &IID_IEcoMemoryManager1, (void**) &pIMemMgr);
     //pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1Lab, 0, &IID_IEcoMemoryManager1, (void**) &pIMemMgr);
-    //IEcoMemoryManager1* pIMemMgrLab = 0;
-    //result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1Lab, 0, &IID_IEcoMemoryManager1, (void**) &pIMemMgrLab);
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1Lab, 0, &IID_IEcoMemoryManager1, (void**) &pIMemMgrLab);
     if (result != 0 || pIMemMgr == 0) {
         /* Возврат в случае ошибки */
         return result;
     }
 
     /* Выделение области памяти 512 КБ */
-    pIMemMgr->pVTbl->Init(pIMemMgr, &__heap_start__, 0x080000);
+    pIMemMgr->pVTbl->Init(pIMemMgr, &__heap_start__, 0x060000);
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1Lab, 0, &IID_IEcoMemoryManager1, (void**) &pIMemMgrLab);
     if (result == 0 && pIMemMgrLab != 0) {
         /* Отдельный участок памяти для тестирования Worst Fit */
         char_t* lab_heap_start = &__heap_start__ + 0x060000; /* После основной кучи */
-        pIMemMgrLab->pVTbl->Init(pIMemMgrLab, lab_heap_start, 0x020000); /* 128 КБ */
+        pIMemMgrLab->pVTbl->Init(pIMemMgrLab, lab_heap_start, 0x04000); /* 16 КБ */
     }
 
     /* Получение интерфейса для работы с виртуальной памятью */
@@ -322,9 +369,9 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     }
     /* Регистрация статического компонента для работы с планировщиком */
     /*result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoTaskScheduler1Lab, (IEcoUnknown*)GetIEcoComponentFactoryPtr_902ABA722D34417BB714322CC761620F);
-    /* Проверка */
+        Проверка */
     /*if (result != 0) {
-        /* Освобождение в случае ошибки */
+        Освобождение в случае ошибки */
     /*    goto Release;
     }*/
 
